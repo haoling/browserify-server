@@ -135,8 +135,6 @@ function createBundles(modules, dir, options) {
     if (!bundleExists) {
       debug('not exists:', filename);
       return writeBundle(modules, dir, options).then(function () {
-        return removeNodeModules(dir);
-      }).then(function () {
         return dir;
       });
     } else {
@@ -144,11 +142,6 @@ function createBundles(modules, dir, options) {
       return dir;
     }
   });
-}
-
-function removeNodeModules(dir) {
-  var nodeModulesDir = dir + '/node_modules';
-  return rimraf(nodeModulesDir);
 }
 
 module.exports = function (modules, dir, options) {
