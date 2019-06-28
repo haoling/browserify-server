@@ -18,7 +18,7 @@ app.use(logger());
 function redirectToExactVersions(modules, filename, req, res) {
   return modules.resolveVersions().then(function (modulesWithVersions) {
     var query = qs.stringify(req.query);
-    var path = baseUrlForModules(modulesWithVersions);
+    var path = baseUrlForModules(req.params.action, modulesWithVersions);
 
     if (filename) {
       path += '/' + filename;
@@ -37,16 +37,19 @@ function createBundle(modules, options) {
   });
 }
 
-function baseUrlForModules(modules) {
-  return '/modules/' + encodeURIComponent(modules.moduleNames.join(','));
+function baseUrlForModules(action, modules) {
+  return '/' + action + '/' + encodeURIComponent(modules.moduleNames.join(','));
 }
 
 function respondWithBundle(moduleNames, filename, req, res) {
   var modules = createModules(moduleNames);
   var bundleFilename = filename || 'bundle.min.js';
 
+  if (req.params.action == 'unpkg' && modules.hasExactVersions() && moduleNames.length == 1) {
+    bundleFilename = 'node_modules/' + modules.moduleVersions[0].name + '/' + bundleFilename;
+  }
   if (modules.hasExactVersions() && modules.hasCorrectOrder(moduleNames)) {
-    return createBundle(modules, {basePath: baseUrlForModules(modules)}).then(function (dir) {
+    return createBundle(modules, {basePath: baseUrlForModules(req.params.action, modules)}).then(function (dir) {
       res.set('Content-Type', 'text/javascript');
       res.sendFile(dir + '/' + bundleFilename, {maxAge: '365d', root: process.cwd()});
     });
@@ -55,8 +58,9 @@ function respondWithBundle(moduleNames, filename, req, res) {
   }
 }
 
-app.get('/modules/:moduleNames', handleModules);
-app.get('/modules/:moduleNames/:filename', handleModules);
+app.get('/:action(modules)/:moduleNames', handleModules);
+app.get('/:action(modules)/:moduleNames/:filename', handleModules);
+app.get('/:action(unpkg)/:moduleNames/:filename(*)', handleModules);
 
 function handleModules(req, res) {
   new Promise(function (fulfil) {
