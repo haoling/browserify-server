@@ -138,3 +138,4 @@ Or you could layer two script tags, one that bundles `c` and defines `require`, 
 * unminified js: `/modules/a@1.0.0/bundle.js`
 * unminified source map: `/modules/a@1.0.0/bundle.js.map`
 * package.json: `/modules/a@1.0.0/package.json`
+* unpkg: `/unpkg/a@1.0.0/dist/bootstrap.min.css`
